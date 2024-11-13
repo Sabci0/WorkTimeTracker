@@ -51,12 +51,14 @@ const TimeTracker: React.FC = () => {
         );
 
         if (todaySession) {
+            // Dodaj czas bieżącej sesji do istniejącej sesji zamiast nadpisywania
             todaySession.duration += currentDuration;
             await axios.put(
                 `http://localhost:5000/workSessions/${todaySession.id}`,
                 todaySession
             );
         } else {
+            // Tworzy nową sesję, jeśli nie istnieje
             const newSession = { date: currentDate, duration: currentDuration };
             const response = await axios.post(
                 "http://localhost:5000/workSessions",
@@ -64,6 +66,9 @@ const TimeTracker: React.FC = () => {
             );
             setWorkSessions([...workSessions, response.data]);
         }
+
+        // Odświeżenie danych z serwera po zakończeniu sesji
+        fetchWorkSessions();
 
         setShowConfirm(false);
         setCurrentDuration(0); // Reset after saving
@@ -74,14 +79,14 @@ const TimeTracker: React.FC = () => {
         setCurrentDuration(0); // Reset if user cancels
     };
 
-    useEffect(() => {
-        const fetchWorkSessions = async () => {
-            const response = await axios.get<WorkSession[]>(
-                "http://localhost:5000/workSessions"
-            );
-            setWorkSessions(response.data);
-        };
+    const fetchWorkSessions = async () => {
+        const response = await axios.get<WorkSession[]>(
+            "http://localhost:5000/workSessions"
+        );
+        setWorkSessions(response.data);
+    };
 
+    useEffect(() => {
         fetchWorkSessions();
     }, []);
 
